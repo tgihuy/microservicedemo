@@ -14,9 +14,10 @@ namespace OrderServices.Application.Services
             return _repository.AddAsync(customer);
         }
 
-        public Task<List<Customer>> GetByIdentityAsync(string identity)
+        public Task<List<Customer>> GetByCustomerIdAsync(string customerId)
         {
-            return _repository.GetByIdentityAsync(identity);
+            return _repository.GetByCustomerIdAsync(customerId);
         }
+
     }
 }

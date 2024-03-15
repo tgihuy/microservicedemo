@@ -3,6 +3,6 @@
     public class ProductUpdateQuantity
     {
         public int ProductId { get; set; }
-        public int AvailableQuantity { get; set; }
+        public int Quantity { get; set; }
     }
 }

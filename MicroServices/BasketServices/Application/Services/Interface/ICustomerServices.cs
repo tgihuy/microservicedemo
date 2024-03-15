@@ -9,6 +9,6 @@ namespace BasketServices.Application.Services.Interface
         Task<UpsertCustomerBasketDTOResponse> AddAsync(UpsertCustomerBasketDTO basket);
         Task<CustomerBasket> GetByIdAsync(string id);
         Task<CustomerBasket> DeleteAsync(string customerId);
-        Task<IEnumerable<CustomerBasket>> GetAllAsync();
+        Task<List<CustomerBasket>> GetAllAsync();
     }
 }

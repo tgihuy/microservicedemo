@@ -78,7 +78,7 @@ namespace BasketServices.Application.Repositories
             }
         }
 
-        public async Task<IEnumerable<CustomerBasket>> GetAllAsync()
+        public async Task<List<CustomerBasket>> GetAllAsync()
         {
             try
             {

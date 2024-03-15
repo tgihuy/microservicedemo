@@ -12,7 +12,7 @@ using OrderServices.Application.Database;
 namespace OrderServices.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20240312072801_Init")]
+    [Migration("20240314023334_Init")]
     partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,10 +30,6 @@ namespace OrderServices.Migrations
                         .HasColumnType("NVARCHAR2(450)")
                         .HasColumnName("CustomerId");
 
-                    b.Property<string>("IdentityId")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR2(2000)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)")
@@ -46,9 +42,6 @@ namespace OrderServices.Migrations
 
                     b.HasKey("Id")
                         .HasName("Tbl_Customer_Pk");
-
-                    b.HasIndex("Id")
-                        .IsUnique();
 
                     b.ToTable("Tbl_Customer", (string)null);
                 });
@@ -92,9 +85,6 @@ namespace OrderServices.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.HasIndex("Id")
-                        .IsUnique();
-
                     b.ToTable("Tbl_Order", (string)null);
                 });
 
@@ -122,9 +112,6 @@ namespace OrderServices.Migrations
 
                     b.HasKey("Id")
                         .HasName("Tbl_OrderItem_Pk");
-
-                    b.HasIndex("Id")
-                        .IsUnique();
 
                     b.HasIndex("OrderId");
 

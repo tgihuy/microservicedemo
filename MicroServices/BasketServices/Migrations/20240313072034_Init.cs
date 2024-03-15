@@ -26,7 +26,7 @@ namespace BasketServices.Migrations
                     BasketItemId = table.Column<string>(type: "NVARCHAR2(450)", nullable: false),
                     ProductId = table.Column<int>(type: "NUMBER(10)", nullable: false),
                     ProductName = table.Column<string>(type: "NVARCHAR2(2000)", nullable: false),
-                    Quantity = table.Column<double>(type: "BINARY_DOUBLE", nullable: false),
+                    Quantity = table.Column<int>(type: "NUMBER(10)", nullable: false),
                     Status = table.Column<int>(type: "NUMBER(10)", nullable: false),
                     CustomerBasketCustomerId = table.Column<string>(type: "NVARCHAR2(450)", nullable: true)
                 },

@@ -44,10 +44,10 @@ namespace OrderServices.Controllers
         }
 
 
-        [HttpDelete("{customerId}")]
-        public async Task<IActionResult> DeleteOrder(string customerId)
+        [HttpDelete("{orderId}")]
+        public async Task<IActionResult> DeleteOrder(string orderId)
         {
-            await _services.DeleteAsync(customerId);
+            await _services.DeleteAsync(orderId);
             return NoContent();
         }
     }

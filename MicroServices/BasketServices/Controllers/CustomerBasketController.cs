@@ -22,7 +22,7 @@ namespace BasketServices.Controllers
             return Ok(item);
         }
 
-        [HttpGet("id")]
+        [HttpGet("basketItem/{id}")]
         public async Task<ActionResult<CustomerBasket>> GetByIdAsync(string id)
         {
             var item = await _services.GetByIdAsync(id);

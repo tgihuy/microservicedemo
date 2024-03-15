@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\C#\\OJT\\ProductService3\\ProductService2\\ProductService2.csproj": {}
+    "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\ProductService2\\ProductService2.csproj": {}
   },
   "projects": {
-    "E:\\C#\\OJT\\ProductService3\\ProductService2\\ProductService2.csproj": {
+    "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\ProductService2\\ProductService2.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\C#\\OJT\\ProductService3\\ProductService2\\ProductService2.csproj",
+        "projectUniqueName": "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\ProductService2\\ProductService2.csproj",
         "projectName": "ProductService2",
-        "projectPath": "E:\\C#\\OJT\\ProductService3\\ProductService2\\ProductService2.csproj",
+        "projectPath": "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\ProductService2\\ProductService2.csproj",
         "packagesPath": "C:\\Users\\win\\.nuget\\packages\\",
-        "outputPath": "E:\\C#\\OJT\\ProductService3\\ProductService2\\obj\\",
+        "outputPath": "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\ProductService2\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

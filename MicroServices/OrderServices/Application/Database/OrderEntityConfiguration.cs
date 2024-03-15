@@ -8,8 +8,6 @@ namespace OrderServices.Application.Database
     {
         public void Configure(EntityTypeBuilder<Order> builder)
         {
-            builder.HasIndex(b => b.Id)
-            .IsUnique();
             builder.ToTable("Tbl_Order");
             builder.HasKey(b => b.Id).HasName("Tbl_Order_Pk");
             builder.Property(b => b.Id).HasColumnName("OrderId");

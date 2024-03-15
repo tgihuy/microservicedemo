@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\C#\\OJT\\ProductService3\\OrderServices\\OrderServices.csproj": {}
+    "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\OrderServices\\OrderServices.csproj": {}
   },
   "projects": {
-    "E:\\C#\\OJT\\ProductService3\\OrderServices\\OrderServices.csproj": {
+    "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\OrderServices\\OrderServices.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\C#\\OJT\\ProductService3\\OrderServices\\OrderServices.csproj",
+        "projectUniqueName": "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\OrderServices\\OrderServices.csproj",
         "projectName": "OrderServices",
-        "projectPath": "E:\\C#\\OJT\\ProductService3\\OrderServices\\OrderServices.csproj",
+        "projectPath": "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\OrderServices\\OrderServices.csproj",
         "packagesPath": "C:\\Users\\win\\.nuget\\packages\\",
-        "outputPath": "E:\\C#\\OJT\\ProductService3\\OrderServices\\obj\\",
+        "outputPath": "E:\\GitHub\\MicroService\\microservicedemo\\MicroServices\\OrderServices\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

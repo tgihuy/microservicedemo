@@ -32,14 +32,14 @@ namespace OrderServices.Repository
             }
         }
 
-        public async Task<List<Customer>> GetByIdentityAsync(string identity)
+        public async Task<List<Customer>> GetByCustomerIdAsync(string customerId)
         {
             List<Customer> customer = new List<Customer>();
             try
             {
-                if (!string.IsNullOrEmpty(identity))
+                if (!string.IsNullOrEmpty(customerId))
                 {
-                    customer = await _context.customers.Where(c => c.IdentityId.Equals(identity)).ToListAsync();
+                    customer = await _context.customers.Where(c => c.Id.Equals(customerId)).ToListAsync();
                 }
                 return customer;
             }

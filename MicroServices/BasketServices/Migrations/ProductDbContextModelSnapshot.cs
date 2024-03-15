@@ -51,8 +51,8 @@ namespace BasketServices.Migrations
                         .HasColumnType("NVARCHAR2(2000)")
                         .HasColumnName("ProductName");
 
-                    b.Property<double>("Quantity")
-                        .HasColumnType("BINARY_DOUBLE")
+                    b.Property<int>("Quantity")
+                        .HasColumnType("NUMBER(10)")
                         .HasColumnName("Quantity");
 
                     b.Property<int>("Status")

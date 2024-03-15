@@ -24,7 +24,7 @@ namespace OrderServices.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Customer>> GetCustomer(string id)
         {
-            var item = await _services.GetByIdentityAsync(id);
+            var item = await _services.GetByCustomerIdAsync(id);
             return Ok(item);
         }
 

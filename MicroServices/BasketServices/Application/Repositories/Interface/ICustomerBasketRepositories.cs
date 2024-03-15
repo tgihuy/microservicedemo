@@ -8,7 +8,7 @@ namespace BasketServices.Application.Repositories.Interface
         Task<CustomerBasket> AddBasketItem(CustomerBasket basket);
         Task<CustomerBasket> GetByIdAsync(string id);
         Task<CustomerBasket> DeleteAsync(string customerId);
-        Task<IEnumerable<CustomerBasket>> GetAllAsync();
+        Task<List<CustomerBasket>> GetAllAsync();
         Task<CustomerBasket> AddCustomerBasketItem(CustomerBasket basket);
     }
 }

@@ -28,10 +28,6 @@ namespace OrderServices.Migrations
                         .HasColumnType("NVARCHAR2(450)")
                         .HasColumnName("CustomerId");
 
-                    b.Property<string>("IdentityId")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR2(2000)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)")
@@ -44,9 +40,6 @@ namespace OrderServices.Migrations
 
                     b.HasKey("Id")
                         .HasName("Tbl_Customer_Pk");
-
-                    b.HasIndex("Id")
-                        .IsUnique();
 
                     b.ToTable("Tbl_Customer", (string)null);
                 });
@@ -90,9 +83,6 @@ namespace OrderServices.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.HasIndex("Id")
-                        .IsUnique();
-
                     b.ToTable("Tbl_Order", (string)null);
                 });
 
@@ -120,9 +110,6 @@ namespace OrderServices.Migrations
 
                     b.HasKey("Id")
                         .HasName("Tbl_OrderItem_Pk");
-
-                    b.HasIndex("Id")
-                        .IsUnique();
 
                     b.HasIndex("OrderId");
 

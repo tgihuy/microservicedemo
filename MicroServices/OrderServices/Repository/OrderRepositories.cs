@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Net.WebSockets;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OrderServices.Application.Database;
 using OrderServices.Application.Entities;
 using OrderServices.Application.Repositories;
@@ -15,7 +17,7 @@ namespace OrderServices.Repository
             _logger = logger;
         }
 
-        public async Task<Order> AddAsync(Order order)
+        public  async Task<Order> AddAsync(Order order)
         {
             try 
             { 
@@ -33,7 +35,7 @@ namespace OrderServices.Repository
                 _logger.LogError(ex.ToString());
                 return null;
             }
-}
+        }
 
         public async Task<Order> DeleteAsync(string orderId)
         {
@@ -78,7 +80,12 @@ namespace OrderServices.Repository
         {
             try
             {
-                return await _context.orders.FirstOrDefaultAsync(c => c.CustomerId == customerId);
+                var result  = await _context.orders.FirstOrDefaultAsync(c => c.CustomerId == customerId);
+                if (result != null)
+                {
+                    await _context.Entry(result).Collection(i => i.Items).LoadAsync();
+                }
+                return result;
             }
             catch (Exception ex)
             {

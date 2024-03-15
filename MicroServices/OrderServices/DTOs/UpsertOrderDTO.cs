@@ -6,6 +6,6 @@
         public string City { get; set; }
         public string District { get; set; }
         public string AdditionalAddress { get; set; }
-        public string IdentityId { get; set; }
+        public string CustomerId { get; set; }
     }
 }

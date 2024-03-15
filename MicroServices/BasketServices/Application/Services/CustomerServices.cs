@@ -68,7 +68,9 @@ namespace BasketServices.Application.Services
 
                                         else
                                         {
-                                            upsertCustomerBasketDTOResponse.Data = _repositories.UpdateQuantityAsync(basket.CustomerId, basket.Quantity, basket.ProductId);
+                                            var existingItem = CustomerBasket1.Items[i];
+                                            existingItem.Quantity += basket.Quantity;
+                                            upsertCustomerBasketDTOResponse.Data = _repositories.UpdateQuantityAsync(basket.CustomerId, existingItem.Quantity, basket.ProductId);
                                             upsertCustomerBasketDTOResponse.Message = "Cập nhật basket";
                                         }
                                     }
@@ -105,7 +107,7 @@ namespace BasketServices.Application.Services
             return await _repositories.DeleteAsync(customerId);
         }
 
-        public async Task<IEnumerable<CustomerBasket>> GetAllAsync()
+        public async Task<List<CustomerBasket>> GetAllAsync()
         {
             return await _repositories.GetAllAsync();
         }

@@ -64,8 +64,8 @@ namespace ProductService2.Controllers
             return Ok(item);
         }
 
-        [HttpPut("ProductQuantity/{id}")]
-        public async Task<ActionResult<Product>> PutProductQuantity(int id, ProductAvailableQuantityDTO product)
+        [HttpPatch("ProductQuantity/{id}")]
+        public async Task<ActionResult<Product>> PutProductQuantity(int id,[FromBody] ProductAvailableQuantityDTO product)
         {
             await _productService.UpdateProductQuantity(id,product.Quantity);
             return Ok("Update thanh cong");

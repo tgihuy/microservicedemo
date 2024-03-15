@@ -11,7 +11,7 @@ using ProductService2.Application.Database;
 namespace ProductService2.Migrations
 {
     [DbContext(typeof(ProductContext))]
-    [Migration("20240306040054_Init")]
+    [Migration("20240315064010_Init")]
     partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

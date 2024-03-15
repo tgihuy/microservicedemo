@@ -14,7 +14,6 @@ namespace OrderServices.Migrations
                 columns: table => new
                 {
                     CustomerId = table.Column<string>(type: "NVARCHAR2(450)", nullable: false),
-                    IdentityId = table.Column<string>(type: "NVARCHAR2(2000)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "NVARCHAR2(2000)", nullable: false),
                     CustomerName = table.Column<string>(type: "NVARCHAR2(2000)", nullable: false)
                 },
@@ -66,27 +65,9 @@ namespace OrderServices.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tbl_Customer_CustomerId",
-                table: "Tbl_Customer",
-                column: "CustomerId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Tbl_Order_CustomerId",
                 table: "Tbl_Order",
                 column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tbl_Order_OrderId",
-                table: "Tbl_Order",
-                column: "OrderId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tbl_OrderItem_Id",
-                table: "Tbl_OrderItem",
-                column: "Id",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tbl_OrderItem_OrderId",

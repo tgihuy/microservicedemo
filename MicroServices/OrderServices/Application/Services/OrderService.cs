@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
+using Microsoft.Build.Evaluation;
 using OrderServices.Application.Entities;
 using OrderServices.Application.Repositories;
 using OrderServices.DTOs;
@@ -20,90 +22,151 @@ namespace OrderServices.Application.Services
         }
         public async Task<UpsertOrderResponseDTO> AddAsync(UpsertOrderDTO upsertOrderDTO)
         {
-            string apiGetBasketId = _configuration["HttpGetCustomerBasket"] + "/" + upsertOrderDTO.IdentityId;
+            string apiGetBasketId = _configuration["HttpGetCustomerBasket"] + "/" + upsertOrderDTO.CustomerId;
             Order order = new Order();
             UpsertOrderResponseDTO upsertOrderResponseDTO = new UpsertOrderResponseDTO("", order);
+            List<ProductUpdateQuantity> productUpdateQuantities = new List<ProductUpdateQuantity>();
 
             HttpResponseMessage responseMessage = await _httpClient.GetAsync(apiGetBasketId);
             if (responseMessage.IsSuccessStatusCode)
             {
                 var customerBasket = await responseMessage.Content.ReadFromJsonAsync<CustomerBasket>();
-                if (customerBasket != null && customerBasket.Items != null && customerBasket.Items.Any())
+                if (customerBasket != null && customerBasket.Items.Any())
                 {
-                    // Kiểm tra xem sản phẩm còn đủ hàng không
-                    bool productsAvailable = await CheckProductsAvailability(customerBasket.Items);
-
-                    if (productsAvailable)
+                    order.OrderDate = DateTime.Now;
+                    order.Street = upsertOrderDTO.Street;
+                    order.District = upsertOrderDTO.District;
+                    order.City = upsertOrderDTO.City;
+                    order.AdditionalAdress = upsertOrderDTO.AdditionalAddress;
+                    order.CustomerId = upsertOrderDTO.CustomerId;
+                    foreach (var item in customerBasket.Items)
                     {
-                        order.OrderDate = DateTime.Now;
-                        order.Street = upsertOrderDTO.Street;
-                        order.City = upsertOrderDTO.City;
-                        order.District = upsertOrderDTO.District;
-                        order.AdditionalAdress = upsertOrderDTO.AdditionalAddress;
-                        order.CustomerId = upsertOrderDTO.IdentityId;
-
-                        foreach (var item in customerBasket.Items)
+                        if (item.Status == 1)
                         {
-                            if (item.Status == 1)
+                            HttpResponseMessage productResponse = await _httpClient.GetAsync($"http://localhost:5167/api/Product/productItem/{item.ProductId}");
+                            if (productResponse.IsSuccessStatusCode)
                             {
-                                var orderItem = new OrderItem
+                                var product = await productResponse.Content.ReadFromJsonAsync<ProductDTO>();
+                                if (product != null && product.AvailableQuantity >= item.Quantity)
                                 {
-                                    ProductId = item.ProductId,
-                                    ProductName = item.ProductName,
-                                    Quantity = item.Quantity
-                                };
-                                order.Items.Add(orderItem);
+                                    var orderItem = new OrderItem
+                                    {
+                                        ProductId = item.ProductId,
+                                        ProductName = product.Name,
+                                        Quantity = item.Quantity
+                                    };
+                                    order.Items.Add(orderItem);
+
+                                    productUpdateQuantities.Add(new ProductUpdateQuantity
+                                    {
+                                        ProductId = item.ProductId,
+                                        Quantity = product.AvailableQuantity - item.Quantity
+                                    });
+                                }
+                                else
+                                {
+                                    upsertOrderResponseDTO.Data = null;
+                                    upsertOrderResponseDTO.Message = $"Sản phẩm '{product?.Name}' không đủ hàng";
+                                    return upsertOrderResponseDTO;
+                                }
+                            }
+                            else
+                            {
+                                return new UpsertOrderResponseDTO("Lỗi khi gọi microservice", null);
                             }
                         }
-
-                        // Thêm đơn hàng vào cơ sở dữ liệu
-                        var orderResult = await _repositories.AddAsync(order);
-                        if (orderResult != null)
-                        {
-                            // Xóa hết basketItem của khách hàng
-                            await ClearCustomerBasket(upsertOrderDTO.IdentityId);
-                            upsertOrderResponseDTO.Data = orderResult;
-                            upsertOrderResponseDTO.Message = "Add thành công";
-                            return upsertOrderResponseDTO;
-                        }
                     }
-                    else
+
+
+                    var orderResult = await _repositories.AddAsync(order);
+                    if (orderResult != null)
                     {
-                        // Nếu sản phẩm không đủ hàng, báo lỗi cho khách hàng
-                        upsertOrderResponseDTO.Message = "Sản phẩm không đủ hàng.";
+                        UpdateProductQuantity(productUpdateQuantities);
+
+                        HttpResponseMessage deleteBasketResponse = await _httpClient.DeleteAsync($"http://localhost:5212/api/Basket/{upsertOrderDTO.CustomerId}");
+                        if (!deleteBasketResponse.IsSuccessStatusCode)
+                        {
+                            return new UpsertOrderResponseDTO("Lỗi khi xóa giỏ hàng", null);
+                        }
+
+                        upsertOrderResponseDTO.Data = orderResult;
+                        upsertOrderResponseDTO.Message = "Add thành công";
                         return upsertOrderResponseDTO;
                     }
+
+
                 }
             }
-
-            upsertOrderResponseDTO.Message = "Thêm đơn hàng thất bại";
+            upsertOrderResponseDTO.Message = "Add thất bại";
             return upsertOrderResponseDTO;
         }
-
-        private async Task<bool> CheckProductsAvailability(List<BasketItem> basketItems)
+        public void UpdateProductQuantity(List<ProductUpdateQuantity> listProductUpdateQuantity)
         {
-            // Kiểm tra số lượng sản phẩm có đủ hàng hay không
-            foreach (var item in basketItems)
+            try
             {
-                var product = await _repositories.GetByIdAsync(item.ProductId);
-                if (product == null || product.Quantity < item.Quantity)
+                for (int i = 0; i < listProductUpdateQuantity.Count; i++)
                 {
-                    return false;
+                    // Gọi hàm PATCH
+                    PatchData(listProductUpdateQuantity[i].ProductId, listProductUpdateQuantity[i]);
                 }
             }
-            return true;
-        }
-
-        private async Task ClearCustomerBasket(string customerId)
-        {
-            // Xóa hết basketItem của khách hàng
-            var customerBasket = await _repositories.GetByCustomerIdAsync(customerId);
-            if (customerBasket != null)
+            catch (Exception ex)
             {
-                return await _repositories.DeleteAsync(customerBasket);
+                _logger.LogError(ex.ToString());
             }
         }
 
+        public async Task PatchData(int resourceId, ProductUpdateQuantity updateData)
+        {
+
+            // Tạo URL PATCH với ID của đối tượng cần cập nhật
+            string patchUrl = _configuration["HttpGetProduct"] + "/ProductQuantity/" + resourceId;
+            ProductDTO product = GetQuantityByProductId(resourceId).Result;
+
+            if (product != null)
+            {
+                var updateQuantityData = new ProductUpdateQuantity()
+                {
+                    ProductId = updateData.ProductId,
+                    Quantity = updateData.Quantity,
+                };
+
+                // Chuyển đối tượng UpdateData thành chuỗi JSON
+                string jsonData = JsonSerializer.Serialize(updateQuantityData);
+
+                // Tạo nội dung PATCH request
+                StringContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                // Thực hiện PATCH request
+                _httpClient.PatchAsync(patchUrl, content);
+            }
+        }
+
+        public async Task<ProductDTO> GetQuantityByProductId(int id)
+        {
+
+            string ApiGetProductById = _configuration["HttpGetProduct"] + "/productItem/" + id;
+            HttpResponseMessage response = new HttpResponseMessage();
+
+            response = await _httpClient.GetAsync(ApiGetProductById);
+            try
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    if (response.Content.Headers.ContentLength != 0)
+                    {
+                        var product = await response.Content.ReadFromJsonAsync<ProductDTO>();
+                        return product;
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return null;
+            }
+        }
 
 
         public async Task<Order> DeleteAsync(string orderId)
