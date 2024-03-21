@@ -44,6 +44,10 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "Manonero.MessageBus.Kafka": {
+              "target": "Package",
+              "version": "[1.0.0-cpt.1.4, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[6.0.27, )"

@@ -60,6 +60,7 @@ namespace BasketServices.Application.Services
                                 {
                                     if (CustomerBasket1.Items[i].ProductId == basket.ProductId)
                                     {
+                                        var existingItem = CustomerBasket1.Items.First(e => e.ProductId == basket.ProductId);
                                         if (basket.Quantity == 0)
                                         {
                                             upsertCustomerBasketDTOResponse.Data = _repositories.DeleteAsync(basket.CustomerId);
@@ -68,10 +69,18 @@ namespace BasketServices.Application.Services
 
                                         else
                                         {
-                                            var existingItem = CustomerBasket1.Items[i];
-                                            existingItem.Quantity += basket.Quantity;
-                                            upsertCustomerBasketDTOResponse.Data = _repositories.UpdateQuantityAsync(basket.CustomerId, existingItem.Quantity, basket.ProductId);
-                                            upsertCustomerBasketDTOResponse.Message = "Cập nhật basket";
+                                            int totalQuantity = existingItem.Quantity + basket.Quantity;
+                                            if (totalQuantity <= product.AvailableQuantity)
+                                            {
+                                                existingItem.Quantity = totalQuantity;
+                                                upsertCustomerBasketDTOResponse.Data = await _repositories.UpdateQuantityAsync(basket.CustomerId, totalQuantity, basket.ProductId);
+                                                upsertCustomerBasketDTOResponse.Message = "Cập nhật basket";
+                                            }
+                                            else
+                                            {
+                                                upsertCustomerBasketDTOResponse.Data = null;
+                                                upsertCustomerBasketDTOResponse.Message = "Số lượng sản phẩm không đủ để thêm vào giỏ hàng";
+                                            }
                                         }
                                     }
                                 }

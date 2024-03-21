@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
+using Confluent.Kafka;
+using Manonero.MessageBus.Kafka.Abstractions;
 using Microsoft.Build.Evaluation;
 using OrderServices.Application.Entities;
 using OrderServices.Application.Repositories;
@@ -13,12 +15,14 @@ namespace OrderServices.Application.Services
         private readonly HttpClient _httpClient;
         private readonly ILogger<OrderService> _logger;
         private readonly IConfiguration _configuration;
-        public OrderService(IOrderRepositories repositories, HttpClient httpClient, ILogger<OrderService> logger, IConfiguration configuration)
+        private readonly IKafkaProducerManager _producerManager;
+        public OrderService(IOrderRepositories repositories, HttpClient httpClient, ILogger<OrderService> logger, IConfiguration configuration, IKafkaProducerManager producerManager)
         {
             _repositories = repositories;
             _httpClient = httpClient;
             _logger = logger;
             _configuration = configuration;
+            _producerManager = producerManager;
         }
         public async Task<UpsertOrderResponseDTO> AddAsync(UpsertOrderDTO upsertOrderDTO)
         {
@@ -56,12 +60,11 @@ namespace OrderServices.Application.Services
                                         Quantity = item.Quantity
                                     };
                                     order.Items.Add(orderItem);
-
-                                    productUpdateQuantities.Add(new ProductUpdateQuantity
-                                    {
-                                        ProductId = item.ProductId,
-                                        Quantity = product.AvailableQuantity - item.Quantity
-                                    });
+                                    //productUpdateQuantities.Add(new ProductUpdateQuantity
+                                    //{
+                                    //    ProductId = item.ProductId,
+                                    //    Quantity = product.AvailableQuantity - item.Quantity
+                                    //});
                                 }
                                 else
                                 {
@@ -81,7 +84,8 @@ namespace OrderServices.Application.Services
                     var orderResult = await _repositories.AddAsync(order);
                     if (orderResult != null)
                     {
-                        UpdateProductQuantity(productUpdateQuantities);
+                        ProduceOrderEvent(orderResult);
+                        //UpdateProductQuantity(productUpdateQuantities);
 
                         HttpResponseMessage deleteBasketResponse = await _httpClient.DeleteAsync($"http://localhost:5212/api/Basket/{upsertOrderDTO.CustomerId}");
                         if (!deleteBasketResponse.IsSuccessStatusCode)
@@ -100,75 +104,116 @@ namespace OrderServices.Application.Services
             upsertOrderResponseDTO.Message = "Add thất bại";
             return upsertOrderResponseDTO;
         }
-        public void UpdateProductQuantity(List<ProductUpdateQuantity> listProductUpdateQuantity)
+        //public void UpdateProductQuantity(List<ProductUpdateQuantity> listProductUpdateQuantity)
+        //{
+        //    try
+        //    {
+        //        for (int i = 0; i < listProductUpdateQuantity.Count; i++)
+        //        {
+        //            // Gọi hàm PATCH
+        //            PatchData(listProductUpdateQuantity[i].ProductId, listProductUpdateQuantity[i]);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex.ToString());
+        //    }
+        //}
+
+        //public async Task PatchData(int resourceId, ProductUpdateQuantity updateData)
+        //{
+
+        //    // Tạo URL PATCH với ID của đối tượng cần cập nhật
+        //    string patchUrl = _configuration["HttpGetProduct"] + "/ProductQuantity/" + resourceId;
+        //    ProductDTO product = GetQuantityByProductId(resourceId).Result;
+
+        //    if (product != null)
+        //    {
+        //        var updateQuantityData = new ProductUpdateQuantity()
+        //        {
+        //            ProductId = updateData.ProductId,
+        //            Quantity = updateData.Quantity,
+        //        };
+
+        //        // Chuyển đối tượng UpdateData thành chuỗi JSON
+        //        string jsonData = JsonSerializer.Serialize(updateQuantityData);
+
+        //        // Tạo nội dung PATCH request
+        //        StringContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+        //        // Thực hiện PATCH request
+        //        _httpClient.PatchAsync(patchUrl, content);
+        //    }
+        //}
+
+        //public async Task<ProductDTO> GetQuantityByProductId(int id)
+        //{
+
+        //    string ApiGetProductById = _configuration["HttpGetProduct"] + "/productItem/" + id;
+        //    HttpResponseMessage response = new HttpResponseMessage();
+
+        //    response = await _httpClient.GetAsync(ApiGetProductById);
+        //    try
+        //    {
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            if (response.Content.Headers.ContentLength != 0)
+        //            {
+        //                var product = await response.Content.ReadFromJsonAsync<ProductDTO>();
+        //                return product;
+        //            }
+        //        }
+        //        return null;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex.ToString());
+        //        return null;
+        //    }
+        //}
+
+        private void ProduceOrderEvent(Order order)
         {
-            try
+            var json = JsonSerializer.Serialize(order);
+            var message = new Message<string, string>
             {
-                for (int i = 0; i < listProductUpdateQuantity.Count; i++)
-                {
-                    // Gọi hàm PATCH
-                    PatchData(listProductUpdateQuantity[i].ProductId, listProductUpdateQuantity[i]);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.ToString());
-            }
+                Key = order.Id,
+                Value = json
+            };
+            var kafkaProducer = _producerManager.GetProducer<string, string>("Order");
+            kafkaProducer.Produce(message);
+            _logger.LogInformation($"Received message: {message}");
         }
 
-        public async Task PatchData(int resourceId, ProductUpdateQuantity updateData)
+        private void ProduceProductEvent(string orderId, bool isSuccess)
         {
+            string value = isSuccess ? "thành công" : "thất bại";
 
-            // Tạo URL PATCH với ID của đối tượng cần cập nhật
-            string patchUrl = _configuration["HttpGetProduct"] + "/ProductQuantity/" + resourceId;
-            ProductDTO product = GetQuantityByProductId(resourceId).Result;
-
-            if (product != null)
+            var message = new Message<string, string>
             {
-                var updateQuantityData = new ProductUpdateQuantity()
-                {
-                    ProductId = updateData.ProductId,
-                    Quantity = updateData.Quantity,
-                };
+                Key = orderId,
+                Value = value
+            };
 
-                // Chuyển đối tượng UpdateData thành chuỗi JSON
-                string jsonData = JsonSerializer.Serialize(updateQuantityData);
-
-                // Tạo nội dung PATCH request
-                StringContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-
-                // Thực hiện PATCH request
-                _httpClient.PatchAsync(patchUrl, content);
-            }
-        }
-
-        public async Task<ProductDTO> GetQuantityByProductId(int id)
-        {
-
-            string ApiGetProductById = _configuration["HttpGetProduct"] + "/productItem/" + id;
-            HttpResponseMessage response = new HttpResponseMessage();
-
-            response = await _httpClient.GetAsync(ApiGetProductById);
-            try
-            {
-                if (response.IsSuccessStatusCode)
-                {
-                    if (response.Content.Headers.ContentLength != 0)
-                    {
-                        var product = await response.Content.ReadFromJsonAsync<ProductDTO>();
-                        return product;
-                    }
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.ToString());
-                return null;
-            }
+            var kafkaProducer = _producerManager.GetProducer<string, string>("Order");
+            kafkaProducer.Produce(message);
+            _logger.LogInformation($"Received message: {message}");
         }
 
 
+        //private void ProduceProductEvent(List<ProductUpdateQuantity> orderResult)
+        //{
+        //    var json = JsonSerializer.Serialize(orderResult);
+        //    var message = new Message<string, string> 
+        //    { 
+        //        Key = 
+        //        Value = json 
+        //    };
+
+        //    var kafkaProducer = _producerManager.GetProducer<string, string>("Order_Result");
+        //    kafkaProducer.Produce(message);
+        //    _logger.LogInformation($"Received message: {message}");
+        //}
         public async Task<Order> DeleteAsync(string orderId)
         {
             return await _repositories.DeleteAsync(orderId);
